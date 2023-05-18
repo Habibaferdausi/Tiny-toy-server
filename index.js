@@ -4,8 +4,64 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 app.use(express.json());
-//require("dotenv").config();
+require("dotenv").config();
 //middle
+
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ehup0wf.mongodb.net/?retryWrites=true&w=majority`;
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
+async function run() {
+  try {
+    // Connect the client to the server	(optional starting in v4.7)
+    const toysCollections = client.db("zooZone").collection("toys");
+
+    app.post("/addToy", async (req, res) => {
+      const toys = req.body;
+      console.log(toys);
+      const result = await toysCollections.insertOne(toys);
+
+      res.send(result);
+      console.log(result);
+    });
+
+    app.get("/allToys", async (req, res) => {
+      const data = toysCollections.find();
+      const result = await data.toArray();
+
+      res.send(result);
+    });
+
+    //for my toys
+
+    app.get("/myToys/:email", async (req, res) => {
+      console.log(req.params.id);
+      const toys = await toysCollections
+        .find({
+          sellerEmail: req.params.email,
+        })
+        .toArray();
+      res.send(toys);
+    });
+
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+  } finally {
+    // Ensures that the client will close when you finish/error
+  }
+}
+run().catch(console.dir);
 
 app.get("/", (req, res) => {
   res.send("connected");

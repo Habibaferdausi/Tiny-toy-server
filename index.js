@@ -24,6 +24,21 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     const toysCollections = client.db("zooZone").collection("toys");
 
+    const indexKeys = { name: 1 };
+    const indexOptions = { name: "title" };
+    const result = await toysCollections.createIndex(indexKeys, indexOptions);
+
+    app.get("/toySearch/:text", async (req, res) => {
+      const search = req.params.text;
+
+      const result = await toysCollections
+        .find({
+          $or: [{ name: { $regex: search, $options: "i" } }],
+        })
+        .toArray();
+      res.send(result);
+    });
+
     app.post("/addToy", async (req, res) => {
       const toys = req.body;
       console.log(toys);

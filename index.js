@@ -57,6 +57,7 @@ async function run() {
       const result = await toysCollections
         .find({})
         .sort({ price: 1 })
+        .limit(20)
         .toArray();
 
       res.send(result);

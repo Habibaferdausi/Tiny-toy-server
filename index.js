@@ -17,6 +17,9 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  maxPoolSize: 10,
 });
 
 async function run() {
@@ -49,8 +52,12 @@ async function run() {
     });
 
     app.get("/allToys", async (req, res) => {
-      const data = toysCollections.find();
-      const result = await data.toArray();
+      const type = req.query.type === "ascending";
+
+      const result = await toysCollections
+        .find({})
+        .sort({ price: 1 })
+        .toArray();
 
       res.send(result);
     });
@@ -63,6 +70,8 @@ async function run() {
         .find({
           sellerEmail: req.params.email,
         })
+
+        .sort({ price: -1 })
         .toArray();
       res.send(toys);
     });
@@ -106,6 +115,13 @@ async function run() {
         },
       };
       const result = await toysCollections.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.delete("/delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await toysCollections.deleteOne(query);
       res.send(result);
     });
 

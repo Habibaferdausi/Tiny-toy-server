@@ -56,14 +56,19 @@ async function run() {
     //for my toys
 
     app.get("/myToys/:email", async (req, res) => {
-      console.log(req.params.id);
-      const toys = await toysCollections
-        .find({
-          sellerEmail: req.params.email,
-        })
+      const { email } = req.params;
+      const { sort } = req.query;
 
-        .sort({ price: -1 })
+      const sortOptions = {
+        ascending: { price: 1 },
+        descending: { price: -1 },
+      };
+
+      const toys = await toysCollections
+        .find({ sellerEmail: email })
+        .sort(sortOptions[sort])
         .toArray();
+
       res.send(toys);
     });
 

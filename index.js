@@ -23,13 +23,15 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    const toysCollections = client.db("zooZone").collection("toys");
+  // Connect the client to the server	(optional starting in v4.7)
 
-    const indexKeys = { name: 1 };
-    const indexOptions = { name: "title" };
-    const result = await toysCollections.createIndex(indexKeys, indexOptions);
+  try {
+    const toysCollections = client.db("zooZone").collection("toys");
+    app.get("/allToys", async (req, res) => {
+      const result = await toysCollections.find({}).limit(20).toArray();
+
+      res.send(result);
+    });
 
     app.get("/toySearch/:text", async (req, res) => {
       const search = req.params.text;
@@ -49,18 +51,6 @@ async function run() {
 
       res.send(result);
       console.log(result);
-    });
-
-    app.get("/allToys", async (req, res) => {
-      const type = req.query.type === "ascending";
-
-      const result = await toysCollections
-        .find({})
-        .sort({ price: 1 })
-        .limit(20)
-        .toArray();
-
-      res.send(result);
     });
 
     //for my toys
